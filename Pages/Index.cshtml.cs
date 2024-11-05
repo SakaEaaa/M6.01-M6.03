@@ -35,8 +35,14 @@ namespace IBAS_kantine.Pages
             // Tilføj til liste for at blive vist i HTML
             MenuItems = menuItems.ToList();
 
-            // Log hentningen
-            _logger.LogInformation("Kantinens menu blev hentet fra Azure Table Storage.");
+            // Sorter menuen efter ugedag
+           var DayOrder = new List<string> { "Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag" };
+           
+            // Sorter menuen efter ugedag
+            MenuItems = MenuItems.OrderBy(x => DayOrder.IndexOf(x.RowKey)).ToList();
+
+        // Log hentningen
+        _logger.LogInformation("Kantinens menu blev hentet fra Azure Table Storage.");
         }
     }
 }
