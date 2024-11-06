@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Azure.Data.Tables;
 using System.Collections.Generic;
@@ -11,38 +10,31 @@ namespace IBAS_kantine.Pages
     public class IndexModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;
-        private readonly IConfiguration _configuration;
+        private readonly TableServiceClient _tableServiceClient;
 
         public List<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
 
-        public IndexModel(ILogger<IndexModel> logger, IConfiguration configuration)
+        public IndexModel(ILogger<IndexModel> logger, TableServiceClient tableServiceClient)
         {
             _logger = logger;
-            _configuration = configuration;
+            _tableServiceClient = tableServiceClient;
         }
 
         public void OnGet()
         {
-            // Hent forbindelse til Azure Table Storage
-            string connectionString = _configuration.GetConnectionString("AzureTableStorage");
-            TableClient tableClient = new TableClient(connectionString, "IBASmenu123");
-
-
             // Hent menupunkterne fra tabellen
+            var tableClient = _tableServiceClient.GetTableClient("IBASmenu123");
             Pageable<MenuItem> menuItems = tableClient.Query<MenuItem>();
-
 
             // Tilføj til liste for at blive vist i HTML
             MenuItems = menuItems.ToList();
 
             // Sorter menuen efter ugedag
-           var DayOrder = new List<string> { "Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag" };
-           
-            // Sorter menuen efter ugedag
+            var DayOrder = new List<string> { "Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag" };
             MenuItems = MenuItems.OrderBy(x => DayOrder.IndexOf(x.RowKey)).ToList();
 
-        // Log hentningen
-        _logger.LogInformation("Kantinens menu blev hentet fra Azure Table Storage.");
+            // Log hentningen
+            _logger.LogInformation("Kantinens menu blev hentet fra Azure Table Storage.");
         }
     }
 }
